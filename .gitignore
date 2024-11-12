@@ -1,5 +1,5 @@
 .vs/*
-oss/*
+res/*
 x64/*
 gltf_validator/*
 *.gltf
