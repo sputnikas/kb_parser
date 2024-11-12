@@ -1139,7 +1139,10 @@ void KBParser::toGLTF(const string& filename, const string& bsa_path, const stri
     mat.doubleSided = true;
     mat.alphaMode = "MASK";
     string diffuse_texture = texture_path + texDiffuse[0];
-    string spec_texture = texture_path +texSpecular[0];
+    string spec_texture = texture_path + texSpecular[0];
+    if (!fs::exists(out_path + "textures\\")) {
+        fs::create_directory(out_path + "textures\\");
+    }
     string diffuse_texture2 = "textures\\" + prefix + texDiffuse[0];
     string spec_texture2 = "textures\\" + prefix + texSpecular[0];
     const auto copy_options = fs::copy_options::update_existing;
@@ -1205,36 +1208,41 @@ void KBParser::toGLTF(const string& filename, const string& bsa_path, const stri
                               false);  // write binary
 }
 
-int main() {
-    if constexpr (std::endian::native == std::endian::little)
-        std::cout << "little-endian\n";
-    else if constexpr (std::endian::native == std::endian::big)
-        std::cout << "big-endian\n";
-    else
-        std::cout << "mixed-endian\n";
-    vector<string> filenames;
-    //= {
-    //    "berserkthick"
-    //};
-    std::string bsa_path = "C:\\All\\All\\Games\\King's Bounty - Warriors of the North\\data\\animation\\";
-    std::string texture_path = "C:\\All\\All\\Games\\King's Bounty - Warriors of the North\\data\\textures\\";
-    std::string bma_path = "C:\\All\\All\\Games\\King's Bounty - Warriors of the North\\data\\models\\";
-    std::string bma_ext = ".bma";
-    std::string out_path = "C:\\All\\All\\GameDev\\models\\";
-    std::string prefix = "kbw_"; // kbw - woth, kbl - legend, kbp - princess in armor, kbd - darkside
-    for (const auto& file : fs::directory_iterator(bma_path)) {
-        if (file.path().extension() == bma_ext) {
-            std::cout << file.path().stem() << std::endl;
-            filenames.push_back(file.path().stem().string());
+int main(int argc, char* argv[]) {
+    if (argc < 4) {
+        printf("How to use: .\\kb_parser \"game\\dir\" \"out\\dir\" prefix");
+    } else {
+        string gamefolder = (argc > 1) ? string(argv[1]) : "C:\\All\\All\\Games\\King's Bounty - Warriors of the North";
+        std::string out_path = (argc > 2) ? string(argv[2]) : "C:\\All\\All\\GameDev\\models\\";
+        std::string prefix = (argc > 3) ? string(argv[3]) : "kbw_";  // kbw - woth, kbl - legend, kbp - princess in armor, kbd - darkside
+        if constexpr (std::endian::native == std::endian::little)
+            std::cout << "little-endian\n";
+        else if constexpr (std::endian::native == std::endian::big)
+            std::cout << "big-endian\n";
+        else
+            std::cout << "mixed-endian\n";
+        vector<string> filenames;
+        //= {
+        //    "berserkthick"
+        //};
+        std::string bsa_path = gamefolder + "\\data\\animation\\";
+        std::string texture_path = gamefolder + "\\data\\textures\\";
+        std::string bma_path = gamefolder + "\\data\\models\\";
+        std::string bma_ext = ".bma";
+        for (const auto& file : fs::directory_iterator(bma_path)) {
+            if (file.path().extension() == bma_ext) {
+                std::cout << file.path().stem() << std::endl;
+                filenames.push_back(file.path().stem().string());
+            }
         }
-    }
-    for (auto iter = filenames.begin(); iter != filenames.end(); iter++) {
-        std::cout << *iter << std::endl;
-        try {
-            KBParser kb = KBParser(*iter + ".bma", bma_path);
-            kb.toGLTF(*iter, bsa_path, texture_path, out_path, prefix);
-        } catch (...) {
-            std::cout << "Error!" << std::endl;
+        for (auto iter = filenames.begin(); iter != filenames.end(); iter++) {
+            std::cout << *iter << std::endl;
+            try {
+                KBParser kb = KBParser(*iter + ".bma", bma_path);
+                kb.toGLTF(*iter, bsa_path, texture_path, out_path, prefix);
+            } catch (...) {
+                std::cout << "Error!" << std::endl;
+            }
         }
     }
     return 0;
